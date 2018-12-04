@@ -1,5 +1,6 @@
 ﻿open System
 open System.Text.RegularExpressions
+open System.Diagnostics
 
 let internal matchesToArray (matches:MatchCollection) = 
   let array = Array.zeroCreate matches.Count
@@ -25,8 +26,9 @@ let toClaim (array : int array) =
     dx = [|array.[1]..array.[1]+array.[3]-1|]
     dy = [|array.[2]..array.[2]+array.[4]-1|]  }
 
-let mapArea claim = 
-  claim.dx |> Seq.collect (fun x -> claim.dy |> Seq.map (fun y -> (x, y)))
+let mapArea claim =
+  Seq.allPairs claim.dx claim.dy
+
 
 let part1 : string seq -> int =
   Seq.map (getInts >> toClaim)
@@ -45,7 +47,10 @@ let main argv =
     |> System.IO.File.ReadAllLines
     |> Array.toSeq
 
+
   input |> part1 |> printfn "Part 1: %i"
   
+
+
   Console.ReadKey() |> ignore
   0

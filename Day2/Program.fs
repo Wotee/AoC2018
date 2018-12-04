@@ -1,8 +1,4 @@
 ﻿open System
-open System.Xml
-open System.Diagnostics
-open System.Collections.Immutable
-open System.Linq
 
 let part1 : string seq -> int = 
   let multiply f1 f2 x = f1 x * f2 x
@@ -13,11 +9,9 @@ let part1 : string seq -> int =
   multiply (amountOfNTuples 2) (amountOfNTuples 3)
 
 let part2 : string seq -> string = 
-  let createPairSeq sequence = seq {
-    for i in 0..(Seq.length sequence - 1) do
-      for j in i+1..(Seq.length sequence - 1) do
-        yield Seq.item i sequence |> seq, Seq.item j sequence |> seq
-    }
+  let createPairSeq sequence = 
+    Seq.allPairs sequence sequence
+    |> Seq.filter (fun (x,y) -> x <> y)
   
   let zip (a, b) = Seq.zip a b
   
@@ -46,4 +40,3 @@ let main argv =
 
   Console.ReadKey() |> ignore
   0
-   
