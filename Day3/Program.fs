@@ -16,20 +16,18 @@ let part1 : Claim seq -> int =
   >> Seq.groupBy id
   >> Seq.filter (fun (_, value) -> Seq.length value > 1)
   >> Seq.length
-   
-let part2 claims =
-  let singleClaimedCoords =
-    claims
-    |> Seq.collect (fun claim -> claim.coords)
-    |> Seq.groupBy id
-    |> Seq.filter (fun (_, value) -> Seq.length value = 1)
-    |> Seq.map fst
-    |> Set.ofSeq
-    
-  claims
-  |> Seq.filter (fun claim -> Set.isSubset (claim.coords |> Set.ofSeq) singleClaimedCoords)
-  |> Seq.map (fun claim -> claim.id)
-  |> Seq.head
+  
+let part2 singleClaimList =
+  let singleClaims = singleClaimList |> List.map fst |> Set.ofList
+  Seq.filter (fun claim -> Set.isSubset (claim.coords |> Set.ofSeq) singleClaims)
+  >> Seq.map (fun claim -> claim.id)
+  >> Seq.head
+
+let splitByClaimCount =
+  Seq.collect (fun claim -> claim.coords)
+  >> Seq.groupBy id
+  >> Seq.toList
+  >> List.partition(fun (_, value) -> Seq.length value > 1)
 
 [<EntryPoint>]
 let main argv =
@@ -38,10 +36,9 @@ let main argv =
     |> System.IO.File.ReadAllLines
     |> Seq.map (Parser.getInts >> claim)
 
-  
-
-  claims |> part1 |> printfn "Part 1: %i"
-  claims |> part2 |> printfn "Part 2: %i"
+  let multiClaims, singleClaims = splitByClaimCount claims
+  multiClaims.Length |> printfn "Part 1: %i"
+  claims |> (part2 singleClaims) |> printfn "Part 2: %i"
 
   Console.ReadKey() |> ignore
   0
