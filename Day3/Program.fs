@@ -1,56 +1,47 @@
 ﻿open System
-open System.Text.RegularExpressions
-open System.Diagnostics
+open Utils
 
-let internal matchesToArray (matches:MatchCollection) = 
-  let array = Array.zeroCreate matches.Count
-  matches.CopyTo(array, 0)
-  array
-  
-let internal getMatches pattern = 
-  Regex(pattern).Matches
-  >> matchesToArray
-  >> Array.map(fun x -> x.Value)
+type Claim = {
+  id : int
+  coords : (int*int) seq
+}
 
-let getInts = 
-  getMatches "-?\d+"
-  >> Array.map int
-
-type SquareClaim = 
-  { id : int
-    dx : int array
-    dy : int array }
-  
-let toClaim (array : int array) =
+let claim (array : int array) =
+  let createSeq from size = seq { from .. size+from-1}
   { id = array.[0]
-    dx = [|array.[1]..array.[1]+array.[3]-1|]
-    dy = [|array.[2]..array.[2]+array.[4]-1|]  }
+    coords = Seq.allPairs (createSeq array.[1] array.[3]) (createSeq array.[2] array.[4]) }
 
-let mapArea claim =
-  Seq.allPairs claim.dx claim.dy
-
-
-let part1 : string seq -> int =
-  Seq.map (getInts >> toClaim)
-  >> Seq.collect mapArea
+let part1 : Claim seq -> int =
+  Seq.collect (fun claim -> claim.coords)
   >> Seq.groupBy id
   >> Seq.filter (fun (_, value) -> Seq.length value > 1)
   >> Seq.length
-
-let part2 input =
-  "TODO"
+   
+let part2 claims =
+  let singleClaimedCoords =
+    claims
+    |> Seq.collect (fun claim -> claim.coords)
+    |> Seq.groupBy id
+    |> Seq.filter (fun (_, value) -> Seq.length value = 1)
+    |> Seq.map fst
+    |> Set.ofSeq
+    
+  claims
+  |> Seq.filter (fun claim -> Set.isSubset (claim.coords |> Set.ofSeq) singleClaimedCoords)
+  |> Seq.map (fun claim -> claim.id)
+  |> Seq.head
 
 [<EntryPoint>]
 let main argv =
-  let input =
-    argv.[0]
+  let claims =
+    "input.txt"
     |> System.IO.File.ReadAllLines
-    |> Array.toSeq
+    |> Seq.map (Parser.getInts >> claim)
 
-
-  input |> part1 |> printfn "Part 1: %i"
   
 
+  claims |> part1 |> printfn "Part 1: %i"
+  claims |> part2 |> printfn "Part 2: %i"
 
   Console.ReadKey() |> ignore
   0
