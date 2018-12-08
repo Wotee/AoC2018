@@ -16,4 +16,7 @@ module Parser =
   let getInts = 
     getMatches "-?\d+"
     >> Array.map int
+
+  let getCustom pattern = 
+    getMatches pattern
   
